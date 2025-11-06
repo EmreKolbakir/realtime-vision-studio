@@ -11,5 +11,9 @@ __pycache__/
 .streamlit/cache/
 .streamlit/secrets.toml
 
+# Helper tooling
+tools/
+!tools/*.swift
+
 # OS files
 .DS_Store

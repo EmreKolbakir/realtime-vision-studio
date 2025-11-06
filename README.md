@@ -6,9 +6,9 @@ Realtime Vision Studio is a Streamlit-powered stage that segments your webcam fe
 
 ## 📽️ Product Demo
 
-<video src="media/demo.mov" controls playsinline width="720">
-  Your browser does not support embedded videos. <a href="media/demo.mov">Download the demo</a>.
-</video>
+![Demo animation](media/demo.gif)
+
+> Need higher resolution? [Download the original 1-minute walkthrough](media/demo.mov).
 
 ### Spotlight Screens
 
