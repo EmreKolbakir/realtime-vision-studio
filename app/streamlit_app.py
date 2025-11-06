@@ -26,7 +26,6 @@ RTC_CONFIG = RTCConfiguration(
     {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
 )
 
-
 def load_previews(paths: Dict[str, Path], size: int = 180) -> Dict[str, np.ndarray]:
     """Return resized previews for Streamlit display."""
     previews: Dict[str, np.ndarray] = {}
@@ -44,10 +43,24 @@ def create_cta():
     """Hero strip at the top of the page."""
     st.markdown(
         """
+        <style>
+            video {
+                max-width: 520px;
+                width: 100%;
+                border-radius: 18px;
+                box-shadow: 0 16px 45px rgba(10, 12, 24, 0.55);
+                background-color: #05070F;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        """
         <div style="padding: 2.5rem 2rem 1rem; background: linear-gradient(120deg,#1f2243,#121527 55%,rgba(124,108,244,0.3)); border-radius: 18px;">
             <h1 style="margin:0; font-size:2.4rem;">Realtime Vision Studio</h1>
             <p style="margin:0.6rem 0 0; font-size:1.1rem; color:rgba(246,246,251,0.85); max-width:560px;">
-            Birkaç tıkla arka planı değiştir, ışıkları aç ve canlı yayınına sanat dokunuşu kat. Portfolyo ve demo videoları için etkili sahneler üret.
+            Swap your background, layer cinematic lighting, and capture demo-ready footage in seconds.
             </p>
         </div>
         """,
@@ -120,9 +133,9 @@ def build_sidebar(
 ) -> EffectSettings:
     settings: EffectSettings = st.session_state.effect_settings
 
-    st.sidebar.markdown("### Kontrol Paneli")
+    st.sidebar.markdown("### Control Panel")
     selected_effect = st.sidebar.selectbox(
-        "Sahne Atmosferi",
+        "Scene Atmosphere",
         (
             "Clean Cut",
             "Blurred Background",
@@ -151,37 +164,45 @@ def build_sidebar(
         ].index(settings.effect_name),
     )
 
-    threshold = st.sidebar.slider("Segmantasyon Eşiği", 0.05, 0.75, settings.threshold, step=0.05)
-    smooth = st.sidebar.slider("Kenar Yumuşatma", 3, 31, settings.mask_smooth, step=2)
+    threshold = st.sidebar.slider("Segmentation Threshold", 0.05, 0.75, settings.threshold, step=0.05)
+    smooth = st.sidebar.slider("Edge Smoothing", 3, 31, settings.mask_smooth, step=2)
 
     updated = replace(settings, effect_name=selected_effect, threshold=threshold, mask_smooth=smooth)
 
     if updated.effect_name in {"Blurred Background", "Virtual Stage"}:
-        blur = st.sidebar.slider("Bulanıklık", 5, 55, settings.blur_strength, step=2)
+        blur = st.sidebar.slider("Background Blur", 5, 55, settings.blur_strength, step=2)
         updated = replace(updated, blur_strength=blur)
 
     if updated.effect_name == "Virtual Stage":
         background_names = ["None"] + list(backgrounds.keys())
-        chosen_bg = st.sidebar.selectbox("Sanal Arka Plan", background_names, index=background_names.index(settings.background_name) if settings.background_name in background_names else 0)
+        chosen_bg = st.sidebar.selectbox(
+            "Virtual Background",
+            background_names,
+            index=background_names.index(settings.background_name) if settings.background_name in background_names else 0,
+        )
         updated = replace(updated, background_name=None if chosen_bg == "None" else chosen_bg)
 
     if updated.effect_name == "Aurora Overlay":
         overlay_names = ["None"] + list(overlays.keys())
-        chosen_overlay = st.sidebar.selectbox("Işık Oyunu", overlay_names, index=overlay_names.index(settings.overlay_name) if settings.overlay_name in overlay_names else 0)
-        opacity = st.sidebar.slider("Işık Yoğunluğu", 0.05, 0.75, settings.overlay_opacity, step=0.05)
+        chosen_overlay = st.sidebar.selectbox(
+            "Light Overlay",
+            overlay_names,
+            index=overlay_names.index(settings.overlay_name) if settings.overlay_name in overlay_names else 0,
+        )
+        opacity = st.sidebar.slider("Overlay Intensity", 0.05, 0.75, settings.overlay_opacity, step=0.05)
         updated = replace(updated, overlay_name=None if chosen_overlay == "None" else chosen_overlay, overlay_opacity=opacity)
 
     if updated.effect_name == "Duotone Portrait":
-        st.sidebar.caption("Pastel portre için pembe & camgöbeği tonları uygulanır.")
+        st.sidebar.caption("Applies soft pink and teal tones for a dreamy portrait look.")
 
     if updated.effect_name == "Painterly Backdrop":
-        strength = st.sidebar.slider("Sanatsal Arka Plan", 0.1, 1.0, settings.stylization_strength, step=0.1)
+        strength = st.sidebar.slider("Painterly Backdrop", 0.1, 1.0, settings.stylization_strength, step=0.1)
         updated = replace(updated, stylization_strength=strength)
 
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         """
-        **İpucu:** En iyi sonuç için arka plan ışığını dengeleyip demo kaydını **cmd+shift+5** ile kaydedebilirsin.
+        **Pro Tip:** Balance your room lighting, then record the demo with **cmd+shift+5** (macOS) or **Win+Alt+R**.
         """
     )
 
@@ -190,13 +211,13 @@ def build_sidebar(
 
 
 def render_storyboard():
-    with st.expander("Storyboard & Sunum Fikirleri", expanded=True):
+    with st.expander("Storyboard & Presentation Ideas", expanded=True):
         st.markdown(
             """
-            - **Hook sahnesi:** Kamera açılır, `Clean Cut` efekti ile net bir çerçeve oluştur.
-            - **Arka plan varyasyonları:** `Virtual Stage` içinde Neon ve Pastel sahneleri sırayla göster.
-            - **Mood break:** `Aurora Overlay` ile loş ışık atmosferi ve overlay'i slider ile değiştir.
-            - **Sanatsal final:** `Painterly Backdrop` + `Duotone Portrait` kombinasyonu ile videoyu kapat.
+            - **Opening hook:** Start with `Clean Cut` to frame the subject crisply.
+            - **Backdrop parade:** Cycle through Neon and Pastel scenes inside `Virtual Stage`.
+            - **Mood switch:** Dial the `Aurora Overlay` slider to showcase lighting transitions.
+            - **Creative finale:** Close with `Painterly Backdrop` layered with `Duotone Portrait`.
             """
         )
 
@@ -221,38 +242,52 @@ def main() -> None:
 
     engine = EffectEngine(backgrounds, overlays)
 
-    st.markdown("### Canlı Sahne")
-    status_placeholder = st.empty()
+    st.markdown("### Live Stage")
+    stage_col, info_col = st.columns([1.4, 1])
 
-    ctx = webrtc_streamer(
-        key="vision-studio",
-        mode=WebRtcMode.SENDRECV,
-        rtc_configuration=RTC_CONFIG,
-        media_stream_constraints={"video": True, "audio": False},
-        video_processor_factory=lambda: StudioProcessor(engine=engine, settings=current_settings),
+    with stage_col:
+        status_placeholder = st.empty()
+        ctx = webrtc_streamer(
+            key="vision-studio",
+            mode=WebRtcMode.SENDRECV,
+            rtc_configuration=RTC_CONFIG,
+            media_stream_constraints={"video": True, "audio": False},
+            video_processor_factory=lambda: StudioProcessor(engine=engine, settings=current_settings),
+        )
+
+    fps_placeholder = info_col.empty()
+    info_col.markdown(
+        """
+        **Recording Tips**
+        - Kick off with a clean framing to set the tone.
+        - Rotate through a couple of backgrounds for visual variety.
+        - Use the storyboard flow below to script your demo voiceover.
+        """,
     )
 
     if ctx.video_processor:
         ctx.video_processor.update_engine(engine)
         ctx.video_processor.update_settings(current_settings)
-        status_placeholder.success(f"🎥 Efekt: {current_settings.effect_name} • Threshold: {current_settings.threshold:.2f}")
-        st.caption(f"FPS (yaklaşık): {ctx.video_processor.fps:.1f}")
+        status_placeholder.success(
+            f"🎥 Effect: {current_settings.effect_name} • Threshold: {current_settings.threshold:.2f}"
+        )
+        fps_placeholder.metric("Approx. FPS", f"{ctx.video_processor.fps:.1f}")
     else:
-        status_placeholder.warning("Canlı yayını başlatmak için kameranı bağla ve 'Start' düğmesine bas.")
+        status_placeholder.warning('Connect your camera and press "Start" to activate the studio.')
 
     st.markdown("---")
     cols = st.columns(2)
     with cols[0]:
-        display_asset_gallery("Sanal Arka Planlar", background_previews)
+        display_asset_gallery("Virtual Backgrounds", background_previews)
     with cols[1]:
-        display_asset_gallery("Işık Overlay'leri", overlay_previews)
+        display_asset_gallery("Light Overlays", overlay_previews)
 
-    st.markdown("### Demo Kılavuzu")
+    st.markdown("### Demo Playbook")
     st.write(
         """
-        - **A/B karşılaştırma**: Aynı sahneyi farklı efektler ile kaydedip bir montajda yan yana göster.
-        - **Teknik notlar**: Segmantasyon değerini değiştirirken sağ üstte küçük bir metin overlay'i ile anlat.
-        - **CTA**: Videonun sonunda link veya QR kod ile projeye yönlendirme ekle.
+        - **A/B comparisons**: Record quick cuts of the same scene with different effects and edit side by side.
+        - **Technical callouts**: Overlay small captions while adjusting the threshold to narrate what is happening.
+        - **CTA moment**: End with a link or QR code pointing viewers to the project repo.
         """
     )
 
